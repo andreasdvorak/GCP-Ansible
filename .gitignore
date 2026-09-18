@@ -1,0 +1,36 @@
+# Python virtual environments and caches
+.myenv/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Ansible-generated files and local configuration
+collections/
+roles_galaxy/
+*.retry
+.vault_pass
+inventory/hosts_runtime.ini
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Google Cloud local credentials accidentally copied into the project
+application_default_credentials.json
+credentials.json
+
+# Editor and operating-system files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
