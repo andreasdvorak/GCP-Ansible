@@ -21,6 +21,12 @@ gcloud auth application-default login
 gcloud auth application-default set-quota-project YOUR_PROJECT_ID
 ```
 
+Check the login
+```bash
+gcloud auth list
+gcloud auth application-default print-access-token
+```
+
 Verify that `gcloud`, `ansible`, and `ansible-galaxy` are available. Install the Python and Ansible dependencies:
 
 ```bash
@@ -32,39 +38,6 @@ ansible-galaxy collection install -r requirements.yml
 
 Create or select a Google Cloud project. You also need a billing account, the Compute Engine API, and sufficient IAM permissions. For a personal learning account, `roles/compute.admin` is typically sufficient; use a narrower role in production.
 
-### 2. Create the VM
+### 2. Project structure
 
-Set the required variable and start with this small, low-cost example:
-
-```bash
-export GCP_PROJECT_ID="your-project-id"
-ansible-playbook playbooks/create_gcp_vm.yml
-```
-
-You can override these variables if needed:
-
-```bash
-export GCP_ZONE="europe-west3-a"
-export GCP_MACHINE_TYPE="e2-micro"
-export GCP_IMAGE_PROJECT="debian-cloud"
-export GCP_IMAGE_FAMILY="debian-12"
-ansible-playbook playbooks/create_gcp_vm.yml
-```
-
-The default configuration creates a VPC network, a subnet, an SSH firewall rule, and a VM with an external IPv4 address. For the first run, use:
-
-```bash
-ansible-playbook playbooks/create_gcp_vm.yml --check
-```
-
-`--check` does not fully replace an API permission check. After the actual run, inspect the VM with `gcloud compute instances describe gcp-ansible-vm --zone "$GCP_ZONE" --project "$GCP_PROJECT_ID"`.
-
-### 3. Delete the VM
-
-Deletion uses a separate command so that normal provisioning never removes resources:
-
-```bash
-gcloud compute instances delete gcp-ansible-vm --zone "$GCP_ZONE" --project "$GCP_PROJECT_ID"
-```
-
-The network and firewall rule remain in place and can be removed separately through the Google Cloud console or `gcloud`.
+The VM provisioning is implemented in the `gcp_vm` role. See [roles/gcp_vm/README.md](roles/gcp_vm/README.md) for role configuration, usage, and resource management.
