@@ -1,0 +1,88 @@
+---
+- name: Create the Linux VM
+  google.cloud.gcp_compute_instance:
+    name: "{{ gcp_vm_instance_name }}"
+    project: "{{ gcp_vm_project_id }}"
+    auth_kind: "{{ gcp_vm_auth_kind }}"
+    zone: "{{ gcp_vm_zone }}"
+    machine_type: "{{ gcp_vm_machine_type }}"
+    disks:
+      - auto_delete: true
+        boot: true
+        initialize_params:
+          source_image: "projects/{{ gcp_vm_image_project }}/global/images/family/{{ gcp_vm_image_family }}"
+          disk_size_gb: 10
+          disk_type: pd-balanced
+    network_interfaces:
+      - network:
+          selfLink: "global/networks/{{ gcp_vm_network_name }}"
+        subnetwork:
+          selfLink: "regions/{{ gcp_vm_region }}/subnetworks/{{ gcp_vm_subnet_name }}"
+    metadata:
+      ssh-keys: "{{ gcp_vm_ssh_key_metadata }}"
+    labels: "{{ gcp_vm_labels }}"
+    tags:
+      items: "{{ gcp_vm_network_tags }}"
+    state: present
+  register: gcp_vm_created_instance
+
+- name: Read the Linux VM metadata
+  ansible.builtin.command:
+    argv:
+      - gcloud
+      - compute
+      - instances
+      - describe
+      - "{{ gcp_vm_instance_name }}"
+      - "--project={{ gcp_vm_project_id }}"
+      - "--zone={{ gcp_vm_zone }}"
+      - "--format=json(metadata.items)"
+  register: gcp_vm_metadata
+  changed_when: false
+
+- name: Add the Ansible SSH key to the Linux VM metadata
+  ansible.builtin.command:
+    argv:
+      - gcloud
+      - compute
+      - instances
+      - add-metadata
+      - "{{ gcp_vm_instance_name }}"
+      - "--project={{ gcp_vm_project_id }}"
+      - "--zone={{ gcp_vm_zone }}"
+      - "--metadata=ssh-keys={{ gcp_vm_ssh_key_metadata }}"
+  when: gcp_vm_ssh_key_metadata not in gcp_vm_metadata.stdout
+  changed_when: true
+
+- name: Read the Linux VM network tags
+  ansible.builtin.command:
+    argv:
+      - gcloud
+      - compute
+      - instances
+      - describe
+      - "{{ gcp_vm_instance_name }}"
+      - "--project={{ gcp_vm_project_id }}"
+      - "--zone={{ gcp_vm_zone }}"
+      - "--format=json(tags.items)"
+  register: gcp_vm_network_tags_current
+  changed_when: false
+
+- name: Add the Ansible and function network tags to the Linux VM
+  ansible.builtin.command:
+    argv:
+      - gcloud
+      - compute
+      - instances
+      - add-tags
+      - "{{ gcp_vm_instance_name }}"
+      - "--project={{ gcp_vm_project_id }}"
+      - "--zone={{ gcp_vm_zone }}"
+      - "--tags={{ gcp_vm_network_tags | join(',') }}"
+  when: "gcp_vm_network_tags | reject('in', gcp_vm_network_tags_current.stdout) | list | length > 0"
+  changed_when: true
+
+- name: Display the Linux VM address
+  ansible.builtin.debug:
+    msg: "VM {{ gcp_vm_instance_name }} is ready.
+      Internal IP: {{ gcp_vm_created_instance.networkInterfaces[0].networkIP | default('not available') }}"

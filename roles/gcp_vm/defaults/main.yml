@@ -1,3 +1,12 @@
+gcp_vm_os: linux
+gcp_vm_function: "{{ inventory_hostname }}"
+gcp_vm_labels:
+  managed-by: ansible
+  function: "{{ gcp_vm_function }}"
+gcp_vm_network_tags:
+  - ssh
+  - ansible-managed
+  - "function-{{ gcp_vm_function }}"
 gcp_vm_project_id: "{{ lookup('ansible.builtin.env', 'GCP_PROJECT_ID') }}"
 gcp_vm_auth_kind: "application"
 gcp_vm_region: "{{ lookup('ansible.builtin.env', 'GCP_REGION') | default('europe-west3', true) }}"
@@ -9,3 +18,6 @@ gcp_vm_instance_name: "{{ lookup('ansible.builtin.env', 'GCP_INSTANCE') | defaul
 gcp_vm_machine_type: "{{ lookup('ansible.builtin.env', 'GCP_MACHINE_TYPE') | default('e2-micro', true) }}"
 gcp_vm_image_project: "{{ lookup('ansible.builtin.env', 'GCP_IMAGE_PROJECT') | default('debian-cloud', true) }}"
 gcp_vm_image_family: "{{ lookup('ansible.builtin.env', 'GCP_IMAGE_FAMILY') | default('debian-12', true) }}"
+gcp_vm_ssh_user: ansible
+gcp_vm_ssh_public_key_file: "{{ playbook_dir }}/../.ssh/gcp_linux.pub"
+gcp_vm_ssh_key_metadata: "{{ gcp_vm_ssh_user }}:{{ lookup('ansible.builtin.file', gcp_vm_ssh_public_key_file) | trim }}"

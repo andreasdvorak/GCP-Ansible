@@ -9,10 +9,14 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
+# GCP keys
+.ssh/
+
 # Ansible-generated files and local configuration
 collections/
 roles_galaxy/
 *.retry
+.lock
 .vault_pass
 inventory/hosts_runtime.ini
 

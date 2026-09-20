@@ -1,0 +1,4 @@
+---
+- name: Windows VM support is not implemented yet
+  ansible.builtin.fail:
+    msg: "Windows VM creation is prepared in the role structure but not implemented yet."

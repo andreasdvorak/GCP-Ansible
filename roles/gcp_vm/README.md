@@ -8,6 +8,7 @@ Creates a Google Cloud VPC network, subnet, SSH firewall rule, and Compute Engin
 - Google Cloud Application Default Credentials
 - A Google Cloud project with the Compute Engine API enabled
 - Permissions to create Compute Engine networks, firewall rules, and instances
+- The Google Cloud CLI (`gcloud`) installed and authenticated on the controller
 
 Install the collection from the repository root with:
 
@@ -42,6 +43,10 @@ The role also supports environment variables as fallbacks for the project and VM
 
 | Role variable | Default | Description |
 | --- | --- | --- |
+| `gcp_vm_os` | `linux` | Target operating system; `linux` is implemented and `windows` is prepared but not implemented. |
+| `gcp_vm_function` | inventory host name | Function identifier used in the `function` label and `function-<value>` network tag. |
+| `gcp_vm_labels` | `managed-by: ansible` | Labels applied to the VM. |
+| `gcp_vm_network_tags` | `ssh`, `ansible-managed`, `function-<value>` | Network tags applied to the VM. |
 | `gcp_vm_project_id` | required | Google Cloud project in which the resources are created. |
 | `gcp_vm_auth_kind` | `application` | Credential type; `application` uses Application Default Credentials. |
 | `gcp_vm_region` | `europe-west3` | Region for the subnet. |
@@ -53,6 +58,8 @@ The role also supports environment variables as fallbacks for the project and VM
 | `gcp_vm_machine_type` | `e2-micro` | Machine type and VM size. |
 | `gcp_vm_image_project` | `debian-cloud` | Google Cloud project providing the VM image family. |
 | `gcp_vm_image_family` | `debian-12` | Operating system image family to use. |
+| `gcp_vm_ssh_user` | `ansible` | Linux user created by the Compute Engine guest agent. |
+| `gcp_vm_ssh_public_key_file` | `.ssh/gcp_linux.pub` | Controller-side public SSH key added for the user. |
 
 Role variables use the `gcp_vm_` prefix and can also be overridden directly in a playbook, for example:
 
@@ -64,7 +71,13 @@ roles:
       gcp_vm_instance_name: development-vm
 ```
 
-The role creates an external IPv4 address and permits SSH from `0.0.0.0/0`. Restrict `source_ranges` in `tasks/main.yml` before using this configuration in a production environment.
+The operating system can be selected with `gcp_vm_os: linux` or `gcp_vm_os: windows`. Linux provisioning is implemented. Windows currently has a separate task entry point and fails with an explicit not-implemented message until Windows image, network, and management settings are defined.
+
+The role does not create an external IPv4 address. SSH is permitted from the Google IAP TCP forwarding range (`35.235.240.0/20`); grant the required IAP tunnel and OS Login permissions before connecting.
+
+The public key in `gcp_vm_ssh_public_key_file` is added to the instance metadata as `ssh-keys`. The Compute Engine guest agent creates the `ansible` user and its `authorized_keys` entry on the VM. The corresponding private key must remain on the controller and is not managed by this role.
+
+GCP distinguishes between labels and network tags. The VM receives the labels `managed-by=ansible` and `function=mytest`, plus the network tags `ansible-managed` and `function-mytest` for the current `mytest` host. VPC networks, subnets, and firewall rules do not support the same VM network tags; their names and the managed VM label are used for identification instead.
 
 ## Provisioning
 

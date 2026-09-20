@@ -5,6 +5,12 @@
       - gcp_vm_project_id | length > 0
     fail_msg: "Set GCP_PROJECT_ID before running this role."
 
+- name: Validate the operating system
+  ansible.builtin.assert:
+    that:
+      - gcp_vm_os in ['linux', 'windows']
+    fail_msg: "gcp_vm_os must be either 'linux' or 'windows'."
+
 - name: Create the VPC network
   google.cloud.gcp_compute_network:
     name: "{{ gcp_vm_network_name }}"
@@ -20,7 +26,7 @@
     auth_kind: "{{ gcp_vm_auth_kind }}"
     region: "{{ gcp_vm_region }}"
     network:
-      selfLink: "projects/{{ gcp_vm_project_id }}/global/networks/{{ gcp_vm_network_name }}"
+      selfLink: "global/networks/{{ gcp_vm_network_name }}"
     ip_cidr_range: 10.10.0.0/24
     state: present
 
@@ -30,46 +36,17 @@
     project: "{{ gcp_vm_project_id }}"
     auth_kind: "{{ gcp_vm_auth_kind }}"
     network:
-      selfLink: "projects/{{ gcp_vm_project_id }}/global/networks/{{ gcp_vm_network_name }}"
+      selfLink: "global/networks/{{ gcp_vm_network_name }}"
     allowed:
       - ip_protocol: tcp
         ports:
           - "22"
     source_ranges:
-      - 0.0.0.0/0
+      - 35.235.240.0/20
     target_tags:
       - ssh
     state: present
+  when: gcp_vm_os == 'linux'
 
-- name: Create the VM
-  google.cloud.gcp_compute_instance:
-    name: "{{ gcp_vm_instance_name }}"
-    project: "{{ gcp_vm_project_id }}"
-    auth_kind: "{{ gcp_vm_auth_kind }}"
-    zone: "{{ gcp_vm_zone }}"
-    machine_type: "{{ gcp_vm_machine_type }}"
-    disks:
-      - auto_delete: true
-        boot: true
-        initialize_params:
-          source_image: "projects/{{ gcp_vm_image_project }}/global/images/family/{{ gcp_vm_image_family }}"
-          disk_size_gb: 10
-          disk_type: pd-balanced
-    network_interfaces:
-      - network:
-          selfLink: "projects/{{ gcp_vm_project_id }}/global/networks/{{ gcp_vm_network_name }}"
-        subnetwork:
-          selfLink: "projects/{{ gcp_vm_project_id }}/regions/{{ gcp_vm_region }}/subnetworks/{{ gcp_vm_subnet_name }}"
-        access_configs:
-          - name: External NAT
-            type: ONE_TO_ONE_NAT
-    tags:
-      items:
-        - ssh
-    state: present
-  register: gcp_vm_created_instance
-
-- name: Display the VM address
-  ansible.builtin.debug:
-    msg: "VM {{ gcp_vm_instance_name }} is ready.
-          Public IP: {{ gcp_vm_created_instance.networkInterfaces[0].accessConfigs[0].natIP | default('not available') }}"
+- name: Create the operating system specific VM
+  ansible.builtin.include_tasks: "{{ gcp_vm_os }}.yml"
