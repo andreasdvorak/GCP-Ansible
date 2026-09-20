@@ -71,4 +71,5 @@
 
 - name: Display the VM address
   ansible.builtin.debug:
-    msg: "VM {{ gcp_vm_instance_name }} is ready. Public IP: {{ gcp_vm_created_instance.networkInterfaces[0].accessConfigs[0].natIP | default('not available') }}"
+    msg: "VM {{ gcp_vm_instance_name }} is ready.
+          Public IP: {{ gcp_vm_created_instance.networkInterfaces[0].accessConfigs[0].natIP | default('not available') }}"
