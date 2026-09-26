@@ -1,0 +1,5 @@
+---
+gcp_project_id: "{{ gcp_vm_project_id }}"
+gcp_project_display_name: ""
+gcp_project_parent_organization_id: ""
+gcp_project_auth_kind: application

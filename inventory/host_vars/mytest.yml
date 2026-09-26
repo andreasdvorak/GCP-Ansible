@@ -1,3 +1,14 @@
 ---
-ipaddress: mytest
+ipaddress: 10.10.0.4
+
 gcp_vm_function: mytest
+
+cost_center: 100
+
+hostenvironment: dev
+
+gcp_vm_labels_desired:
+  managed-by: ansible
+  function: "{{ gcp_vm_function }}"
+  cost_center: "{{ cost_center | string }}"
+  hostenvironment: "{{ hostenvironment }}"

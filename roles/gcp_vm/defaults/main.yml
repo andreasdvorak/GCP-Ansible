@@ -1,8 +1,5 @@
 gcp_vm_os: linux
 gcp_vm_function: "{{ inventory_hostname }}"
-gcp_vm_labels:
-  managed-by: ansible
-  function: "{{ gcp_vm_function }}"
 gcp_vm_network_tags:
   - ssh
   - ansible-managed
@@ -14,7 +11,8 @@ gcp_vm_zone: "{{ lookup('ansible.builtin.env', 'GCP_ZONE') | default('europe-wes
 gcp_vm_network_name: "{{ lookup('ansible.builtin.env', 'GCP_NETWORK') | default('gcp-ansible-network', true) }}"
 gcp_vm_subnet_name: "{{ lookup('ansible.builtin.env', 'GCP_SUBNET') | default('gcp-ansible-subnet', true) }}"
 gcp_vm_firewall_name: "{{ lookup('ansible.builtin.env', 'GCP_FIREWALL') | default('gcp-ansible-allow-ssh', true) }}"
-gcp_vm_instance_name: "{{ lookup('ansible.builtin.env', 'GCP_INSTANCE') | default('gcp-ansible-vm', true) }}"
+gcp_vm_instance_name: "{{ inventory_hostname }}"
+gcp_vm_assign_public_ip: false
 gcp_vm_machine_type: "{{ lookup('ansible.builtin.env', 'GCP_MACHINE_TYPE') | default('e2-micro', true) }}"
 gcp_vm_image_project: "{{ lookup('ansible.builtin.env', 'GCP_IMAGE_PROJECT') | default('debian-cloud', true) }}"
 gcp_vm_image_family: "{{ lookup('ansible.builtin.env', 'GCP_IMAGE_FAMILY') | default('debian-12', true) }}"

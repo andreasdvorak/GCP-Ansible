@@ -1,0 +1,26 @@
+---
+- name: Validate the project ID
+  ansible.builtin.assert:
+    that:
+      - gcp_project_id is match('^[a-z][a-z0-9-]{4,28}[a-z0-9]$')
+    fail_msg: >-
+      Set gcp_vm_project_id to a valid, globally unique Google Cloud project ID
+      (6-30 lowercase letters, digits, or hyphens; it must start with a letter
+      and cannot end with a hyphen).
+
+- name: Create the Google Cloud project if needed
+  google.cloud.gcp_resourcemanager_project:
+    id: "{{ gcp_project_id }}"
+    name: "{{ gcp_project_display_name if gcp_project_display_name | length > 0 else omit }}"
+    auth_kind: "{{ gcp_project_auth_kind }}"
+    parent: >-
+      {{ {'type': 'organization', 'id': gcp_project_parent_organization_id}
+         if gcp_project_parent_organization_id | length > 0 else omit }}
+    state: present
+
+- name: Enable the Compute Engine API
+  google.cloud.gcp_serviceusage_service:
+    name: compute.googleapis.com
+    project: "{{ gcp_project_id }}"
+    auth_kind: "{{ gcp_project_auth_kind }}"
+    state: present

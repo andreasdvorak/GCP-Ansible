@@ -1,0 +1,26 @@
+---
+- name: Find the VM before applying labels
+  google.cloud.gcp_compute_instance_info:
+    project: "{{ gcp_vm_project_id }}"
+    auth_kind: "{{ gcp_vm_auth_kind }}"
+    zone: "{{ gcp_vm_zone }}"
+    filters:
+      - "name = {{ gcp_vm_labels_instance_name }}"
+  register: gcp_vm_labels_target
+
+- name: Ensure the target VM exists
+  ansible.builtin.assert:
+    that:
+      - gcp_vm_labels_target.resources | length > 0
+    fail_msg: >-
+      VM {{ gcp_vm_labels_instance_name }} was not found in {{ gcp_vm_project_id }} /
+      {{ gcp_vm_zone }}.
+
+- name: Apply the desired labels to the VM
+  google.cloud.gcp_compute_instance:
+    name: "{{ gcp_vm_labels_instance_name }}"
+    project: "{{ gcp_vm_project_id }}"
+    auth_kind: "{{ gcp_vm_auth_kind }}"
+    zone: "{{ gcp_vm_zone }}"
+    labels: "{{ gcp_vm_labels_desired }}"
+    state: present

@@ -1,0 +1,5 @@
+---
+gcp_vm_labels_instance_name: "{{ gcp_vm_instance_name | default(inventory_hostname) }}"
+gcp_vm_labels_desired:
+  managed-by: ansible
+  function: "{{ gcp_vm_function | default(inventory_hostname) }}"
