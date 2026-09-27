@@ -156,7 +156,7 @@ find . -type f -name "*.sh" -exec shellcheck {} +
 
 as a graph
 ```bash
-ansible-inventory --graph
+ansible-inventory [-i inventory/hosts_provision.ini] --graph
 ```
 
 as a list

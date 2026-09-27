@@ -3,3 +3,4 @@
 ansible_python_interpreter: "{{ ansible_playbook_python }}"
 # Desired Google Cloud project ID; gcp_project creates it if it does not exist.
 gcp_vm_project_id: "project-c64d491a-e81c-47b9-9b7"
+ansible_connection: local

@@ -1,6 +1,6 @@
 ---
 - name: Provision a Google Cloud VM
-  hosts: provision
+  hosts: gcp_provision
   gather_facts: false
   roles:
     - role: gcp_project

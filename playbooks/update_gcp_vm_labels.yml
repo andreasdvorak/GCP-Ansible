@@ -1,6 +1,6 @@
 ---
 - name: Update labels on a Google Cloud VM
-  hosts: provision
+  hosts: gcp_provision
   gather_facts: false
   roles:
     - role: gcp_vm_labels

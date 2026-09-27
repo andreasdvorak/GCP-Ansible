@@ -62,5 +62,5 @@ that targets the provisioning inventory group.
 ## Run Ansible
 
 ```bash
-ansible-playbook -i inventory/hosts_provision.ini playbooks/create_gcp_vm.yml
+ansible-playbook -i inventory/hosts_provision.ini playbooks/create_gcp_vm.yml --limit <hostname>
 ```
