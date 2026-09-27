@@ -1,0 +1,9 @@
+---
+- name: Provision a Google Cloud Storage bucket
+  hosts: gcp_provision
+  gather_facts: false
+  vars_files:
+    - ../inventory/storage_buckets.yml
+  roles:
+    - role: gcp_project
+    - role: gcp_storage

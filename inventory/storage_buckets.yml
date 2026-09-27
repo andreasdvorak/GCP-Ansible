@@ -1,0 +1,10 @@
+---
+# Globale GCP-Ressourcen: Eintrag pro Bucket, unabhängig von den Hosts.
+gcp_storage_buckets:
+  - name: project-c64d491a-e81c-47b9-9b7-mybucket
+    cost_center: 100
+    function: mytest
+    location: europe-west3
+    storage_class: STANDARD
+    labels:
+      environment: dev

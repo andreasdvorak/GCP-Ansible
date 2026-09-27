@@ -1,0 +1,41 @@
+---
+- name: Validate the Cloud Storage configuration
+  ansible.builtin.assert:
+    that:
+      - gcp_storage_project_id | length > 0
+      - item.name is defined
+      - item.name | length > 0
+      - item.cost_center is defined
+      - item.cost_center | string | length > 0
+      - item.function is defined
+      - item.function | string | length > 0
+    fail_msg: >-
+      Every entry in gcp_storage_buckets requires a name, cost_center, and
+      function.
+  loop: "{{ gcp_storage_buckets }}"
+  loop_control:
+    label: "{{ item.name | default('unnamed bucket') }}"
+
+- name: Enable the Cloud Storage API
+  google.cloud.gcp_serviceusage_service:
+    name: storage.googleapis.com
+    project: "{{ gcp_storage_project_id }}"
+    auth_kind: "{{ gcp_storage_auth_kind }}"
+    state: present
+
+- name: Create the Google Cloud Storage bucket
+  google.cloud.gcp_storage_bucket:
+    name: "{{ item.name }}"
+    project: "{{ item.project_id | default(gcp_storage_project_id) }}"
+    auth_kind: "{{ gcp_storage_auth_kind }}"
+    location: "{{ item.location | default(gcp_storage_location) }}"
+    storage_class: "{{ item.storage_class | default(gcp_storage_storage_class) }}"
+    labels: >-
+      {{ (item.labels | default({}))
+        | combine({'managed-by': 'ansible',
+                'cost_center': item.cost_center | string,
+                'function': item.function | string}) }}
+    state: present
+  loop: "{{ gcp_storage_buckets }}"
+  loop_control:
+    label: "{{ item.name }}"

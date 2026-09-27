@@ -1,0 +1,6 @@
+---
+gcp_storage_project_id: "{{ gcp_vm_project_id }}"
+gcp_storage_auth_kind: application
+gcp_storage_location: "{{ lookup('ansible.builtin.env', 'GCP_REGION') | default('europe-west3', true) }}"
+gcp_storage_storage_class: STANDARD
+gcp_storage_buckets: []
