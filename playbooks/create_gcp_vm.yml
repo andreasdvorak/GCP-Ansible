@@ -4,5 +4,6 @@
   gather_facts: false
   roles:
     - role: gcp_project
+    - role: gcp_network
     - role: gcp_vm
     - role: gcp_vm_labels

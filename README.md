@@ -13,8 +13,10 @@ For GCP information read this: [GCP](GCP.md)
 ### Project structure
 
 Project creation and Compute Engine API activation are implemented in the
-`gcp_project` role. VM provisioning is implemented in the `gcp_vm` role. See
-[roles/gcp_project/README.md](roles/gcp_project/README.md) and
+`gcp_project` role. VPC networks, subnets, and the SSH firewall rule are
+implemented in the `gcp_network` role; VM provisioning is implemented in the
+`gcp_vm` role. See [roles/gcp_project/README.md](roles/gcp_project/README.md),
+[roles/gcp_network/README.md](roles/gcp_network/README.md), and
 [roles/gcp_vm/README.md](roles/gcp_vm/README.md) for configuration and usage.
 Cloud Storage bucket provisioning is implemented in the `gcp_storage` role; see
 [roles/gcp_storage/README.md](roles/gcp_storage/README.md).

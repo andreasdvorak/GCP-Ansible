@@ -1,12 +1,11 @@
 # Ansible Role: gcp_vm
 
-Creates a Google Cloud VPC network, subnet, SSH firewall rule, and Compute Engine VM.
+Creates a Google Cloud Compute Engine VM in an existing VPC network and subnet.
 
 ### Features
 
-- Creates a custom VPC network and a subnet in the configured region.
-- Allows SSH through Google Cloud IAP TCP forwarding and applies the configured
-  network tags to the VM.
+- Uses the IAP SSH firewall rule managed by `gcp_network` and applies the
+  configured network tags to the VM.
 - Creates a Linux Compute Engine VM from the configured image family and adds
   the controller's public SSH key to instance metadata.
 - Can optionally assign an ephemeral external IPv4 address to the VM.
@@ -70,7 +69,7 @@ inventory host connects locally while retaining its host variables:
 ```
 
 The repository entry point is `playbooks/create_gcp_vm.yml`. Provisioning
-configuration is in `inventory/group_vars/provision.yml`; host-specific values
+configuration is in `inventory/group_vars/gcp_provision.yml`; host-specific values
 are loaded from `inventory/host_vars/`.
 
 ## Configuration
@@ -81,7 +80,14 @@ remaining settings and only need to be overridden when required:
 
 ```yaml
 gcp_vm_project_id: "your-project-id"
+gcp_vm_network_name: app-network
+gcp_vm_subnet_name: app-europe
+gcp_vm_region: europe-west3
 ```
+
+The VPC and subnet must already exist. They are provisioned by the `gcp_network`
+role, which runs before this role in `playbooks/create_gcp_vm.yml`. Select the
+VM's network and subnet with `gcp_vm_network_name` and `gcp_vm_subnet_name`.
 
 The role also supports environment variables as fallbacks for the project and VM settings. `GCP_PROJECT_ID` is required when no `gcp_vm_project_id` is set. `gcp_vm_auth_kind` selects the credential type used by the Google Cloud modules and should remain `application` when using Application-Default-Credentials.
 
@@ -94,9 +100,8 @@ The role also supports environment variables as fallbacks for the project and VM
 | `gcp_vm_auth_kind` | `application` | Credential type used by the Google Cloud modules. |
 | `gcp_vm_region` | `europe-west3` | Region for the subnet. Can be overridden with `GCP_REGION`. |
 | `gcp_vm_zone` | `europe-west3-a` | Zone for the Compute Engine VM. Can be overridden with `GCP_ZONE`. |
-| `gcp_vm_network_name` | `gcp-ansible-network` | Name of the custom VPC network. Can be overridden with `GCP_NETWORK`. |
-| `gcp_vm_subnet_name` | `gcp-ansible-subnet` | Name of the subnet. Can be overridden with `GCP_SUBNET`. |
-| `gcp_vm_firewall_name` | `gcp-ansible-allow-ssh` | Name of the SSH firewall rule. Can be overridden with `GCP_FIREWALL`. |
+| `gcp_vm_network_name` | `gcp-ansible-network` | Existing VPC network to which the VM attaches. Can be overridden with `GCP_NETWORK`. |
+| `gcp_vm_subnet_name` | `gcp-ansible-subnet` | Existing subnet to which the VM attaches. Can be overridden with `GCP_SUBNET`. |
 | `gcp_vm_instance_name` | Inventory host name | Name of the Compute Engine VM; for example, host `mytest` uses `host_vars/mytest.yml` and creates a VM named `mytest`. |
 | `gcp_vm_assign_public_ip` | `false` | Assign an ephemeral external IPv4 address when `true`. |
 | `gcp_vm_machine_type` | `e2-micro` | Machine type and VM size. Can be overridden with `GCP_MACHINE_TYPE`. |
@@ -153,7 +158,8 @@ Available tags:
 
 - Only Linux VM provisioning is implemented; the default image family is Debian
   12.
-- The subnet CIDR is currently fixed at `10.10.0.0/24`.
+- The role provisions one VM per inventory host; each VM attaches to one
+  existing subnet.
 - The VM has no external IPv4 address unless `gcp_vm_assign_public_ip` is
   enabled. The SSH firewall only allows IAP TCP forwarding from
   `35.235.240.0/20`; direct SSH and ICMP require separate firewall rules.

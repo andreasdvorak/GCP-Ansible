@@ -1,0 +1,77 @@
+---
+- name: Validate the network configuration
+  ansible.builtin.assert:
+    that:
+      - gcp_network_project_id | length > 0
+      - gcp_network_networks | length > 0
+    fail_msg: >-
+      Set a Google Cloud project ID and define at least one entry in
+      gcp_network_networks.
+
+- name: Validate each VPC network
+  ansible.builtin.assert:
+    that:
+      - item.name is defined
+      - item.name | length > 0
+      - item.subnets is defined
+      - item.subnets | length > 0
+    fail_msg: >-
+      Every entry in gcp_network_networks requires a name and at least one subnet.
+  loop: "{{ gcp_network_networks }}"
+  loop_control:
+    label: "{{ item.name | default('unnamed network') }}"
+
+- name: Validate each subnet
+  ansible.builtin.assert:
+    that:
+      - item.1.name is defined
+      - item.1.name | length > 0
+      - item.1.region is defined
+      - item.1.region | length > 0
+      - item.1.ip_cidr_range is defined
+      - item.1.ip_cidr_range | length > 0
+    fail_msg: >-
+      Every subnet requires a name, region, and ip_cidr_range.
+  loop: "{{ gcp_network_networks | subelements('subnets') }}"
+  loop_control:
+    label: "{{ item.0.name }}/{{ item.1.name | default('unnamed subnet') }}"
+
+- name: Create the VPC networks
+  google.cloud.gcp_compute_network:
+    name: "{{ item.name }}"
+    project: "{{ gcp_network_project_id }}"
+    auth_kind: "{{ gcp_network_auth_kind }}"
+    auto_create_subnetworks: false
+    state: present
+  loop: "{{ gcp_network_networks }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create the subnets
+  google.cloud.gcp_compute_subnetwork:
+    name: "{{ item.1.name }}"
+    project: "{{ gcp_network_project_id }}"
+    auth_kind: "{{ gcp_network_auth_kind }}"
+    region: "{{ item.1.region }}"
+    network:
+      selfLink: "global/networks/{{ item.0.name }}"
+    ip_cidr_range: "{{ item.1.ip_cidr_range }}"
+    state: present
+  loop: "{{ gcp_network_networks | subelements('subnets') }}"
+  loop_control:
+    label: "{{ item.0.name }}/{{ item.1.name }}"
+
+- name: Create the SSH firewall rule for IAP
+  google.cloud.gcp_compute_firewall:
+    name: "{{ gcp_network_ssh_firewall_name }}"
+    project: "{{ gcp_network_project_id }}"
+    auth_kind: "{{ gcp_network_auth_kind }}"
+    network:
+      selfLink: "global/networks/{{ gcp_network_ssh_firewall_network }}"
+    allowed:
+      - ip_protocol: tcp
+        ports:
+          - "22"
+    source_ranges: "{{ gcp_network_ssh_firewall_source_ranges }}"
+    target_tags: "{{ gcp_network_ssh_firewall_target_tags }}"
+    state: present

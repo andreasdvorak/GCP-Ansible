@@ -1,0 +1,17 @@
+gcp_network_project_id: "{{ gcp_vm_project_id | default(lookup('ansible.builtin.env', 'GCP_PROJECT_ID')) }}"
+gcp_network_auth_kind: application
+gcp_network_default_region: "{{ lookup('ansible.builtin.env', 'GCP_REGION') | default('europe-west3', true) }}"
+gcp_network_default_name: "{{ lookup('ansible.builtin.env', 'GCP_NETWORK') | default('gcp-ansible-network', true) }}"
+gcp_network_default_subnet_name: "{{ lookup('ansible.builtin.env', 'GCP_SUBNET') | default('gcp-ansible-subnet', true) }}"
+gcp_network_networks:
+  - name: "{{ gcp_network_default_name }}"
+    subnets:
+      - name: "{{ gcp_network_default_subnet_name }}"
+        region: "{{ gcp_network_default_region }}"
+        ip_cidr_range: 10.10.0.0/24
+gcp_network_ssh_firewall_name: "{{ lookup('ansible.builtin.env', 'GCP_FIREWALL') | default('gcp-ansible-allow-ssh', true) }}"
+gcp_network_ssh_firewall_network: "{{ gcp_network_default_name }}"
+gcp_network_ssh_firewall_source_ranges:
+  - 35.235.240.0/20
+gcp_network_ssh_firewall_target_tags:
+  - ssh
