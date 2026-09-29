@@ -19,7 +19,10 @@ implemented in the `gcp_network` role; VM provisioning is implemented in the
 [roles/gcp_network/README.md](roles/gcp_network/README.md), and
 [roles/gcp_vm/README.md](roles/gcp_vm/README.md) for configuration and usage.
 Cloud Storage bucket provisioning is implemented in the `gcp_storage` role; see
-[roles/gcp_storage/README.md](roles/gcp_storage/README.md).
+[roles/gcp_storage/README.md](roles/gcp_storage/README.md). GKE Autopilot
+cluster provisioning is implemented in `gcp_gke_autopilot`; see
+[roles/gcp_gke_autopilot/README.md](roles/gcp_gke_autopilot/README.md). Its
+cluster settings are kept in `inventory/gke_autopilot.yml`.
 
 Provisioning runs against `inventory/hosts_provision.ini` and connects locally to
 Google Cloud. Runtime playbooks use `inventory/hosts_runtime.ini`, which is also
@@ -29,5 +32,6 @@ with the `gcp_vm_labels` role and `playbooks/update_gcp_vm_labels.yml`.
 ```bash
 ansible-playbook -i inventory/hosts_provision.ini playbooks/create_gcp_vm.yml
 ansible-playbook -i inventory/hosts_provision.ini playbooks/create_gcp_storage.yml
+ansible-playbook -i inventory/hosts_provision.ini playbooks/create_gke_autopilot.yml
 ansible-playbook -i inventory/hosts_provision.ini playbooks/update_gcp_vm_labels.yml
 ```

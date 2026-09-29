@@ -1,0 +1,9 @@
+---
+- name: Provision a Google Kubernetes Engine Autopilot cluster
+  hosts: gcp_provision
+  gather_facts: false
+  vars_files:
+    - ../inventory/gke_autopilot.yml
+  roles:
+    - role: gcp_project
+    - role: gcp_gke_autopilot

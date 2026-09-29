@@ -121,7 +121,7 @@ tags can be set with `gcp_network_ssh_firewall_source_ranges` and
 | `gcp_network_networks` | One VPC with subnet `10.10.0.0/24` | VPCs and their subnet definitions. Each subnet specifies a name, region, and CIDR range. |
 | `gcp_network_ssh_firewall_name` | `gcp-ansible-allow-ssh` | Name of the IAP SSH firewall rule. Can be overridden with `GCP_FIREWALL`. |
 | `gcp_network_ssh_firewall_network` | `gcp_network_default_name` | VPC to which the SSH firewall rule applies. |
-| `gcp_network_ssh_firewall_source_ranges` | `35.235.240.0/20` | Source ranges allowed by the SSH firewall rule. |
+| `gcp_network_ssh_firewall_source_ranges` | `35.235.240.0/20` | Source ranges allowed by the SSH firewall rule. 35.235.240.0/20 is the IPv4 source range for IAP TCP Forwarding |
 | `gcp_network_ssh_firewall_target_tags` | `ssh` | Network tags targeted by the SSH firewall rule. |
 
 Role variables use the `gcp_network_` prefix and can also be overridden

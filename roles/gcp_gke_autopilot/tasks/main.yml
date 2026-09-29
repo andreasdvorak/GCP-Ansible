@@ -1,0 +1,117 @@
+---
+- name: Validate the GKE Autopilot configuration
+  ansible.builtin.assert:
+    that:
+      - gcp_gke_autopilot_project_id | length > 0
+      - gcp_gke_autopilot_clusters | length > 0
+    fail_msg: >-
+      Set a Google Cloud project ID and define at least one cluster in
+      gcp_gke_autopilot_clusters.
+
+- name: Validate each GKE Autopilot cluster configuration
+  ansible.builtin.assert:
+    that:
+      - item.name is defined
+      - item.name | default('') | length > 0
+      - item.region | default(gcp_gke_autopilot_region) | length > 0
+      - >-
+        item.subnetwork | default(gcp_gke_autopilot_subnetwork) | length == 0 or
+        item.network | default(gcp_gke_autopilot_network) | length > 0
+    fail_msg: >-
+      Every cluster requires a name and region. A subnet requires a network.
+  loop: "{{ gcp_gke_autopilot_clusters }}"
+  loop_control:
+    label: "{{ item.name | default('unnamed cluster') }}"
+
+- name: Enable the Google Kubernetes Engine API
+  google.cloud.gcp_serviceusage_service:
+    name: container.googleapis.com
+    project: "{{ gcp_gke_autopilot_project_id }}"
+    auth_kind: "{{ gcp_gke_autopilot_auth_kind }}"
+    state: present
+
+- name: List GKE clusters in the target project
+  ansible.builtin.command:
+    argv:
+      - gcloud
+      - container
+      - clusters
+      - list
+      - "--project={{ gcp_gke_autopilot_project_id }}"
+      - --format=json
+  register: gcp_gke_autopilot_cluster_list
+  changed_when: false
+
+- name: Ensure existing clusters are Autopilot and healthy
+  ansible.builtin.assert:
+    that:
+      - >-
+        gcp_gke_autopilot_matching_clusters | length == 0 or
+        ((gcp_gke_autopilot_matching_clusters[0].autopilot
+          | default({})).enabled | default(false))
+      - >-
+        gcp_gke_autopilot_matching_clusters | length == 0 or
+        gcp_gke_autopilot_matching_clusters[0].status == 'RUNNING'
+    fail_msg: >-
+      Cluster {{ item.name }} in
+      {{ item.region | default(gcp_gke_autopilot_region) }}
+      either is not Autopilot or is not RUNNING. Review it and, if it is a
+      failed cluster creation, delete it before rerunning this playbook.
+  vars:
+    gcp_gke_autopilot_matching_clusters: >-
+      {{ gcp_gke_autopilot_cluster_list.stdout | from_json
+         | selectattr('name', 'equalto', item.name)
+         | selectattr(
+           'location', 'equalto',
+           item.region | default(gcp_gke_autopilot_region))
+         | list }}
+  loop: "{{ gcp_gke_autopilot_clusters }}"
+  loop_control:
+    label: "{{ item.name | default('unnamed cluster') }}"
+
+- name: Create GKE Autopilot clusters
+  ansible.builtin.command:
+    argv: >-
+      {{
+        [
+          'gcloud',
+          'container',
+          'clusters',
+          'create-auto',
+          item.name,
+          '--region=' ~ (item.region | default(gcp_gke_autopilot_region)),
+          '--project=' ~ gcp_gke_autopilot_project_id,
+          '--release-channel=' ~ (item.release_channel
+            | default(gcp_gke_autopilot_release_channel) | lower),
+          '--quiet'
+        ]
+        + (
+          ['--enable-private-nodes']
+          if (item.enable_private_nodes
+              | default(gcp_gke_autopilot_enable_private_nodes) | bool)
+          else [])
+        + (
+          ['--network=' ~ (item.network
+            | default(gcp_gke_autopilot_network))]
+           if item.network | default(gcp_gke_autopilot_network) | length > 0
+           else [])
+        + (
+          ['--subnetwork=' ~ (item.subnetwork
+            | default(gcp_gke_autopilot_subnetwork))]
+            if item.subnetwork
+              | default(gcp_gke_autopilot_subnetwork) | length > 0
+           else [])
+      }}
+  changed_when: true
+  when: gcp_gke_autopilot_matching_clusters | length == 0
+  vars:
+    gcp_gke_autopilot_matching_clusters: >-
+      {{ gcp_gke_autopilot_cluster_list.stdout | from_json
+         | selectattr('name', 'equalto', item.name)
+         | selectattr(
+           'location', 'equalto',
+           item.region | default(gcp_gke_autopilot_region))
+         | list }}
+  loop: "{{ gcp_gke_autopilot_clusters }}"
+  loop_control:
+    label: "{{ item.name }}"

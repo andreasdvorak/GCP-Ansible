@@ -1,5 +1,5 @@
 ansible-core==2.20.1
-ansible-lint==26.8.0
+ansible-lint==26.9.0
 google-auth>=2.0.0
 google-cloud-storage==3.14.1
 requests==2.34.2

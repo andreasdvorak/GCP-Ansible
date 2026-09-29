@@ -1,0 +1,14 @@
+---
+gcp_gke_autopilot_project_id: >-
+  {{ gcp_vm_project_id | default(
+       lookup('ansible.builtin.env', 'GCP_PROJECT_ID')) }}
+gcp_gke_autopilot_auth_kind: application
+gcp_gke_autopilot_region: >-
+  {{ lookup('ansible.builtin.env', 'GCP_REGION')
+     | default('europe-west3', true) }}
+gcp_gke_autopilot_release_channel: regular
+gcp_gke_autopilot_enable_private_nodes: true
+gcp_gke_autopilot_network: ""
+gcp_gke_autopilot_subnetwork: ""
+gcp_gke_autopilot_clusters:
+  - name: gcp-ansible-autopilot
